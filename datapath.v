@@ -1,265 +1,60 @@
 module datapath(
-	input		clk, clr, enable, R0in, R1in, R2in, R3in, R4in, R5in, R6in, R7in, R8in,
+	input		clk, clr, R0in, R1in, R2in, R3in, R4in, R5in, R6in, R7in, R8in,
 				R9in, R10in, R11in, R12in, R13in, R14in, R15in, HIin, LOin, PCin, IRin,
-				MDRin, MARin, INPORTin, Cin, Yin, Zin, read, memorychip,
+				MDRin, MARin, INPORTin, Cin, Yin, Zin, Read, IncPC,
 	input		R0out, R1out, R2out, R3out, R4out, R5out, R6out, R7out, R8out, R9out,
 				R10out, R11out, R12out, R13out, R14out, R15out, HIout, LOout, PCout, 
 				IRout, MDRout, INPORTout, Cout, Yout, Zlowout, Zhighout,
+	input [31:0] Mdatain,
+	input [4:0] opcode,
 	output	out
 );
-	wire BUSMUXOUTtoREG;
-	wire R0toBUSMUX, R1toBUSMUX, R2toBUSMUX, R3toBUSMUX, R4toBUSMUX, R5toBUSMUX, R6toBUSMUX, R7toBUSMUX, R8toBUSMUX, R9toBUSMUX, 
+	wire [31:0] BUSMUXOUT;
+	wire [31:0] R0toBUSMUX, R1toBUSMUX, R2toBUSMUX, R3toBUSMUX, R4toBUSMUX, R5toBUSMUX, R6toBUSMUX, R7toBUSMUX, R8toBUSMUX, R9toBUSMUX, 
 		  R10toBUSMUX, R11toBUSMUX, R12toBUSMUX, R13toBUSMUX, R14toBUSMUX, R15toBUSMUX, HItoBUSMUX, LOtoBUSMUX, PCtoBUSMUX, MDRtoBUSMUX,
 		  INPORTtoBUSMUX, CSIGNtoBUSMUX, ZHIGHtoBUSMUX, ZLOWtoBUSMUX;
-	wire CODEtoBUSMUX;
+	wire [31:0] YtoALU, ALUtoZHIGH, ALUtoZLO;
+	wire [31:0] MDMUXtoMDR;
+	wire [4:0] CODEtoBUSMUX;
 	
-	register R0(
-		.D (BUSMUXOUTtoREG),
-		.Q (R0toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R0in)
-	);
+	ALU alu(YtoALU, BUSMUXOUT, opcode, ALUtoZLO, ALUtoZHIGH);
 	
-	register R1(
-		.D (BUSMUXOUTtoREG),
-		.Q (R1toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R1in)
-	);
+	register R0(BUSMUXOUT, clk, clr, R0in, R0toBUSMUX);
+	register R1(BUSMUXOUT, clk, clr, R1in, R1toBUSMUX);
+	register R2(BUSMUXOUT, clk, clr, R2in, R2toBUSMUX);
+	register R3(BUSMUXOUT, clk, clr, R3in, R3toBUSMUX);	
+	register R4(BUSMUXOUT, clk, clr, R4in, R4toBUSMUX);	
+	register R5(BUSMUXOUT, clk, clr, R5in, R5toBUSMUX);
+	register R6(BUSMUXOUT, clk, clr, R6in, R6toBUSMUX);
+	register R7(BUSMUXOUT, clk, clr, R7in, R7toBUSMUX);
+	register R8(BUSMUXOUT, clk, clr, R8in, R8toBUSMUX);
+	register R9(BUSMUXOUT, clk, clr, R9in, R9toBUSMUX);
+	register R10(BUSMUXOUT, clk, clr, R10in, R10toBUSMUX);
+	register R11(BUSMUXOUT, clk, clr, R11in, R11toBUSMUX);
+	register R12(BUSMUXOUT, clk, clr, R12in, R12toBUSMUX);
+	register R13(BUSMUXOUT, clk, clr, R13in, R13toBUSMUX);
+	register R14(BUSMUXOUT, clk, clr, R14in, R14toBUSMUX);
+	register R15(BUSMUXOUT, clk, clr, R15in, R15toBUSMUX);
+	register HI(BUSMUXOUT, clk, clr, HIin, HItoBUSMUX);
+	register LO(BUSMUXOUT, clk, clr, LOin, LOtoBUSMUX);
+	register IR(BUSMUXOUT, clk, clr, IRin, IRout);
 	
-	register R2(
-		.D (BUSMUXOUTtoREG),
-		.Q (R2toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R2in)
-	);
+	register_pc PC(BUSMUXOUT, clk, clr, PCin, IncPC, PCtoBUSMUX);
+	
+	md_mux MDMux(BUSMUXOUT, Mdatain, Read, MDMUXtoMDR);
+	register MDR(MDMUXtoMDR, clk, clr, MDRin, MDRtoBUSMUX);
 
-	register R3(
-		.D (BUSMUXOUTtoREG),
-		.Q (R3toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R3in)
-	);
-	
-	register R4(
-		.D (BUSMUXOUTtoREG),
-		.Q (R4toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R4in)
-	);
-	
-	register R5(
-		.D (BUSMUXOUTtoREG),
-		.Q (R5toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R5in)
-	);
-	
-	register R6(
-		.D (BUSMUXOUTtoREG),
-		.Q (R6toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R6in)
-	);
-	
-	register R7(
-		.D (BUSMUXOUTtoREG),
-		.Q (R7toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R7in)
-	);
-	
-	register R8(
-		.D (BUSMUXOUTtoREG),
-		.Q (R8toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R8in)
-	);
-	
-	register R9(
-		.D (BUSMUXOUTtoREG),
-		.Q (R9toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R9in)
-	);
-	
-	register R10(
-		.D (BUSMUXOUTtoREG),
-		.Q (R10toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R10in)
-	);
-	
-	register R11(
-		.D (BUSMUXOUTtoREG),
-		.Q (R11toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R11in)
-	);
-	
-	register R12(
-		.D (BUSMUXOUTtoREG),
-		.Q (R12toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R12in)
-	);
-	
-	register R13(
-		.D (BUSMUXOUTtoREG),
-		.Q (R13toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R13in)
-	);
-	
-	register R14(
-		.D (BUSMUXOUTtoREG),
-		.Q (R14toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R14in)
-	);
+	register MAR(BUSMUXOUT, clk, clr, MARin, Mdatain);
+	register Y(BUSMUXOUT, clk, clr, Yin, YtoALU);
+	register Z_HIGH(ALUtoZHIGH, clk, clr, Zin, ZHIGHtoBUSMUX);
+	register Z_LOW(ALUtoZLO, clk, clr, Zin, ZLOWtoBUSMUX);
+	register INPORT(BUSMUXOUT, clk, clr, INPORTin, INPORTtoBUSMUX);
+	register C_SIGN(BUSMUXOUT, clk, clr, Cin, CSIGNtoBUSMUX);
 
-	register R15(
-		.D (BUSMUXOUTtoREG),
-		.Q (R15toBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (R15in)
-	);
+	bus_mux BusMux(R0toBUSMUX, R1toBUSMUX, R2toBUSMUX, R3toBUSMUX, R4toBUSMUX, R5toBUSMUX, R6toBUSMUX, R7toBUSMUX, R8toBUSMUX, 
+						R9toBUSMUX, R10toBUSMUX, R11toBUSMUX, R12toBUSMUX, R13toBUSMUX, R14toBUSMUX, R15toBUSMUX, HItoBUSMUX, LOtoBUSMUX,
+						ZHIGHtoBUSMUX, ZLOWtoBUSMUX, PCtoBUSMUX, MDRtoBUSMUX, INPORTtoBUSMUX, CSIGNtoBUSMUX, CODEtoBUSMUX, BUSMUXOUT);
 
-	register HI(
-		.D (BUSMUXOUTtoREG),
-		.Q (HItoBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (HIin)
-	);
-	
-	register LO(
-		.D (BUSMUXOUTtoREG),
-		.Q (LOtoBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (LOin)
-	);
-
-	register PC(
-		.D (BUSMUXOUTtoREG),
-		.Q (PCtoBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (PCin)
-	);
-
-	register IR(
-		.D (BUSMUXOUTtoREG),
-		.Q (),
-		.clk (clk),
-		.clr (clr),
-		.enable (IRin)
-	);
-	
-	md_mux MDMux(
-		.md_mux_out (MDMUXtoMDR),
-		.bus_mux_out (BUSMUXOUTtoREG),
-		.m_data_in (memorychip),
-		.read (read)
-	);
-	
-	register MDR(
-		.D (BUSMUXOUTtoREG),
-		.Q (MDRtoBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (MDRin)
-	);
-
-	register MAR(
-		.D (BUSMUXOUTtoREG),
-		.Q (memorychip),
-		.clk (clk),
-		.clr (clr),
-		.enable (MARin)
-	);
-	
-	register Z_HIGH(
-		.D (BUSMUXOUTtoREG),
-		.Q (ZHIGHtoBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (Zin)
-	);
-
-	register Z_LOW(
-		.D (BUSMUXOUTtoREG),
-		.Q (ZLOWtoBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (Zin)
-	);
-
-	register INPORT(
-		.D (BUSMUXOUTtoREG),
-		.Q (INPORTtoBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (INPORTin)
-	);
-
-	register C_SIGN(
-		.D (BUSMUXOUTtoREG),
-		.Q (CSIGNtoBUSMUX),
-		.clk (clk),
-		.clr (clr),
-		.enable (Cin)
-	);
-
-	bus_mux BusMux(
-		.r0 (R0toBUSMUX),
-		.r1 (R1toBUSMUX),
-		.r2 (R2toBUSMUX),
-		.r3 (R3toBUSMUX),
-		.r4 (R4toBUSMUX),
-		.r5 (R5toBUSMUX),
-		.r6 (R6toBUSMUX),
-		.r7 (R7toBUSMUX),
-		.r8 (R8toBUSMUX),
-		.r9 (R9toBUSMUX),
-		.r10 (R10toBUSMUX),
-		.r11 (R11toBUSMUX),
-		.r12 (R12toBUSMUX),
-		.r13 (R13toBUSMUX),
-		.r14 (R14toBUSMUX),
-		.r15 (R15toBUSMUX),
-		.HI (HItoBUSMUX),
-		.LO (LOtoBUSMUX),
-		.z_high (ZHIGHtoBUSMUX),
-		.z_low (ZLOWtoBUSMUX),
-		.PC (PCtoBUSMUX),
-		.MDR (MDRtoBUSMUX),
-		.in_port (INPORTtoBUSMUX),
-		.c_sign_extended (CSIGNtoBUSMUX),
-		.select (CODEtoBUSMUX),
-		.bus_mux_out (BUSMUXOUTtoREG)
-	);
-
-	encoder BusEncoder(
-		.Data (enable),
-		.Code (CODEtoBUSMUX)
-	);
+	encoder BusEncoder(CODEtoBUSMUX, {8'b0, Cout, INPORTout, MDRout, PCout, Zlowout, Zhighout, LOout, HIout, R15out, R14out, R13out, R12out, R11out, R10out, R9out, R8out, R7out, R6out, R5out, R4out, R3out, R2out, R1out, R0out});
 	
 endmodule

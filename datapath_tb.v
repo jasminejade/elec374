@@ -1,10 +1,12 @@
 // and datapath_tb.v file: <This is the filename>
 `timescale 1ns/10ps
+
 module datapath_tb;
 	reg PCout, Zlowout, MDRout, R2out, R3out; // add any other signals to see in your simulation
 	reg MARin, Zin, PCin, MDRin, IRin, Yin;
-	reg IncPC, Read, AND, R1in, R2in, R3in;
-	reg Clock;
+	reg IncPC, Read, R1in, R2in, R3in; //AND = opcode
+	reg clk, clr;
+	reg [4:0] opcode;
 	reg [31:0] Mdatain;
 	
 	parameter Default = 4'b0000, Reg_load1a = 4'b0001, Reg_load1b = 4'b0010, Reg_load2a = 4'b0011,
@@ -17,45 +19,46 @@ datapath DUT(
 	.Zlowout (Zlowout),
 	.MDRout (MDRout),
 	.R2out (R2out),
-	.R4out (R4out),
+	.R3out (R3out),
 	.MARin (MARin),
 	.Zin (Zin),
 	.PCin (PCin),
 	.MDRin (MDRin),
 	.IRin (IRin),
 	.Yin (Yin),
-	IncPC,
-	.read (Read),
-	AND,
+	.IncPC (IncPC),
+	.Read (Read),
 	.R1in (R1in),
 	.R2in (R2in),
 	.R3in (R3in),
-	.clk (Clock),
-	.memorychip (Mdatain)
+	.clk (clk),
+	.clr (clr),
+	.opcode (opcode),
+	.Mdatain (Mdatain)
 );
 
 // add test logic here
-initial
-	begin
-		Clock = 0;
-		forever #10 Clock = ~ Clock;
+initial begin
+	clr = 0;
+	clk = 0;
+	forever #10 clk = ~ clk;
 end
 
-always @(posedge Clock) // finite state machine; if clock rising-edge
+always @(posedge clk) // finite state machine; if clock rising-edge
 	begin
 		case (Present_state)
-			Default : Present_state = Reg_load1a;
-			Reg_load1a : Present_state = Reg_load1b;
-			Reg_load1b : Present_state = Reg_load2a;
-			Reg_load2a : Present_state = Reg_load2b;
-			Reg_load2b : Present_state = Reg_load3a;
-			Reg_load3a : Present_state = Reg_load3b;
-			Reg_load3b : Present_state = T0;
-			T0 : Present_state = T1;
-			T1 : Present_state = T2;
-			T2 : Present_state = T3;
-			T3 : Present_state = T4;
-			T4 : Present_state = T5;
+			Default : #40 Present_state = Reg_load1a;
+			Reg_load1a : #40 Present_state = Reg_load1b;
+			Reg_load1b : #40 Present_state = Reg_load2a;
+			Reg_load2a : #40 Present_state = Reg_load2b;
+			Reg_load2b : #40 Present_state = Reg_load3a;
+			Reg_load3a : #40 Present_state = Reg_load3b;
+			Reg_load3b : #40 Present_state = T0;
+			T0 : #40 Present_state = T1;
+			T1 : #40 Present_state = T2;
+			T2 : #40 Present_state = T3;
+			T3 : #40 Present_state = T4;
+			T4 : #40 Present_state = T5;
 		endcase
 	end
 	
@@ -65,37 +68,37 @@ always @(Present_state) // do the required job in each state
 			Default: begin
 				PCout <= 0; Zlowout <= 0; MDRout <= 0; // initialize the signals
 				R2out <= 0; R3out <= 0; MARin <= 0; Zin <= 0;
-				PCin <=0; MDRin <= 0; IRin <= 0; Yin <= 0;
-				IncPC <= 0; Read <= 0; AND <= 0;
+				PCin <= 0; MDRin <= 0; IRin <= 0; Yin <= 0;
+				IncPC <= 0; Read <= 0; opcode <= 0;
 				R1in <= 0; R2in <= 0; R3in <= 0; Mdatain <= 32'h00000000;
 			end
 			Reg_load1a: begin
 				Mdatain <= 32'h00000012;
 				Read = 0; MDRin = 0; // the first zero is there for completeness
 				#10 Read <= 1; MDRin <= 1;
-				#15 Read <= 0; MDRin <= 0;
 			end
 			Reg_load1b: begin
-				#10 MDRout <= 1; R2in <= 1;
-				#15 MDRout <= 0; R2in <= 0; // initialize R2 with the value $12
+				#10 MDRout <= 1; R2in <= 1; //Read <= 1;
+				#10 MDRout <= 0; R2in <= 0; // initialize R2 with the value $12
+								#10 Read <= 0; MDRin <= 0;
 			end
 			Reg_load2a: begin
 				Mdatain <= 32'h00000014;
 				#10 Read <= 1; MDRin <= 1;
-				#15 Read <= 0; MDRin <= 0;
 			end
 			Reg_load2b: begin
 				#10 MDRout <= 1; R3in <= 1;
-				#15 MDRout <= 0; R3in <= 0; // initialize R3 with the value $14
+				#10 MDRout <= 0; R3in <= 0; // initialize R3 with the value $14
+								#10 Read <= 0; MDRin <= 0;
 			end
 			Reg_load3a: begin
 				Mdatain <= 32'h00000018;
 				#10 Read <= 1; MDRin <= 1;
-				#15 Read <= 0; MDRin <= 0;
 			end
 			Reg_load3b: begin
 				#10 MDRout <= 1; R1in <= 1;
-				#15 MDRout <= 0; R1in <= 0; // initialize R1 with the value $18
+				#10 MDRout <= 0; R1in <= 0; // initialize R1 with the value $18
+								#10 Read <= 0; MDRin <= 0;
 			end
 
 			T0: begin // see if you need to de-assert these signals
@@ -112,9 +115,11 @@ always @(Present_state) // do the required job in each state
 				R2out <= 1; Yin <= 1;
 			end
 			T4: begin
-				R3out <= 1; AND <= 1; Zin <= 1;
+				R2out <= 0; Yin <= 0;
+				R3out <= 1; opcode <= 5'b00001; Zin <= 1;
 			end
 			T5: begin
+				R3out <= 0; Zin <= 0;
 				Zlowout <= 1; R1in <= 1;
 			end
 		endcase

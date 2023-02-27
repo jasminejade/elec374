@@ -8,13 +8,14 @@ ALU uut(
 	.A (A),
 	.B (B),
 	.op (op),
-	.Z (Z)
+	.Zlow (Z[31:0]),
+	.Zhi (Z[63:32])
 );
 
 initial begin
-	A = 16;
+	A = 3489660929;
 	B = 3;
 	#10;
-	op = 4;
+	op = 11;
 end
 endmodule

@@ -1,6 +1,6 @@
-module register(D, clk, clr, enable, Q);
+module register_pc(D, clk, clr, enable, IncPC, Q);
 	input [31:0] D;
-	input clk, clr, enable;
+	input clk, clr, enable, IncPC;
 	output [31:0] Q;
 	reg [31:0] Q;
 	
@@ -9,6 +9,9 @@ module register(D, clk, clr, enable, Q);
 		if(clr)
 			Q <= 0;
 		else if(enable)
-			Q <= D;
+			if(IncPC)
+				Q <= D + 4; //or + 4
+			else
+				Q <= D;
 	end
 endmodule
