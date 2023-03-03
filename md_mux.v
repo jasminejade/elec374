@@ -1,14 +1,15 @@
-module md_mux #(parameter word_size = 32)(
-	input		[word_size-1:0]	bus_mux_out, m_data_in,
-	input								read,
-	output	[word_size-1:0]	md_mux_out
+module md_mux(
+	input	[31:0]		bus_mux_out, m_data_in,
+	input					read,
+	output reg [31:0]	md_mux_out
 );
-	reg		[word_size-1:0]	mux_int;
-	always @(bus_mux_out, m_data_in, read)
+//	reg		[31:0]	mdmux_int;
+
+	always @(*) begin
 		case(read)
-			0 : mux_int = bus_mux_out;
-			1 : mux_int = m_data_in;
-			default	mux_int = 32'bx;
+			0 : md_mux_out <= bus_mux_out;
+			1 : md_mux_out <= m_data_in;
+			default : md_mux_out <= 32'bx;
 		endcase
-	assign md_mux_out = mux_int;
+	end
 endmodule

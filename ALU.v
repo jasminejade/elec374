@@ -21,7 +21,7 @@ module ALU(
 	rotate ror_instance(A, B, 1, ror_result);
 		
 	always @(*) begin
-		case(op)
+		case(op) //change op code for phase 2, inidividual control signals
 			1 : {Zhi, Zlow} = or_result;
 			2 : {Zhi, Zlow} = and_result;
 			3 : {Zhi, Zlow} = add_result;

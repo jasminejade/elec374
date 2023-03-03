@@ -10,7 +10,7 @@ module register_pc(D, clk, clr, enable, IncPC, Q);
 			Q <= 0;
 		else if(enable)
 			if(IncPC)
-				Q <= D + 4; //or + 4
+				Q <= D + 1;
 			else
 				Q <= D;
 	end

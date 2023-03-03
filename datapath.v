@@ -1,21 +1,21 @@
 module datapath(
-	input		clk, clr, R0in, R1in, R2in, R3in, R4in, R5in, R6in, R7in, R8in,
-				R9in, R10in, R11in, R12in, R13in, R14in, R15in, HIin, LOin, PCin, IRin,
-				MDRin, MARin, INPORTin, Cin, Yin, Zin, Read, IncPC,
-	input		R0out, R1out, R2out, R3out, R4out, R5out, R6out, R7out, R8out, R9out,
-				R10out, R11out, R12out, R13out, R14out, R15out, HIout, LOout, PCout, 
-				IRout, MDRout, INPORTout, Cout, Yout, Zlowout, Zhighout,
-	input [31:0] Mdatain,
-	input [4:0] opcode,
-	output	out
+	input wire clk, clr, R1in, R2in, R3in, Yin, Zin, MDRin, IRin, PCin, MARin, R2out, R3out, MDRout, Zlowout, PCout, IncPC, Read,
+	input wire [31:0] Mdatain,
+	input wire [4:0] opcode
 );
+	wire	R0in, R4in, R5in, R6in, R7in, R8in, R9in, R10in, R11in, R12in, R13in, R14in, R15in, HIin, LOin, INPORTin, Cin;
+	wire	R0out, R1out, R4out, R5out, R6out, R7out, R8out, R9out, R10out, R11out, R12out, R13out, R14out, R15out, HIout, LOout, INPORTout, Cout, Yout, Zhighout;
+	
 	wire [31:0] BUSMUXOUT;
 	wire [31:0] R0toBUSMUX, R1toBUSMUX, R2toBUSMUX, R3toBUSMUX, R4toBUSMUX, R5toBUSMUX, R6toBUSMUX, R7toBUSMUX, R8toBUSMUX, R9toBUSMUX, 
 		  R10toBUSMUX, R11toBUSMUX, R12toBUSMUX, R13toBUSMUX, R14toBUSMUX, R15toBUSMUX, HItoBUSMUX, LOtoBUSMUX, PCtoBUSMUX, MDRtoBUSMUX,
 		  INPORTtoBUSMUX, CSIGNtoBUSMUX, ZHIGHtoBUSMUX, ZLOWtoBUSMUX;
 	wire [31:0] YtoALU, ALUtoZHIGH, ALUtoZLO;
-	wire [31:0] MDMUXtoMDR;
+	wire [31:0] MDMUXtoMDR, MARtoMEMORY, IRtoCONTROL;
 	wire [4:0] CODEtoBUSMUX;
+	
+	md_mux MDMux(BUSMUXOUT, Mdatain, Read, MDMUXtoMDR);
+	register MDR(MDMUXtoMDR, clk, clr, MDRin, MDRtoBUSMUX);
 	
 	ALU alu(YtoALU, BUSMUXOUT, opcode, ALUtoZLO, ALUtoZHIGH);
 	
@@ -37,17 +37,16 @@ module datapath(
 	register R15(BUSMUXOUT, clk, clr, R15in, R15toBUSMUX);
 	register HI(BUSMUXOUT, clk, clr, HIin, HItoBUSMUX);
 	register LO(BUSMUXOUT, clk, clr, LOin, LOtoBUSMUX);
-	register IR(BUSMUXOUT, clk, clr, IRin, IRout);
+	register IR(BUSMUXOUT, clk, clr, IRin, IRtoCONTROL);
 	
 	register_pc PC(BUSMUXOUT, clk, clr, PCin, IncPC, PCtoBUSMUX);
-	
-	md_mux MDMux(BUSMUXOUT, Mdatain, Read, MDMUXtoMDR);
-	register MDR(MDMUXtoMDR, clk, clr, MDRin, MDRtoBUSMUX);
 
-	register MAR(BUSMUXOUT, clk, clr, MARin, Mdatain);
+	register MAR(BUSMUXOUT, clk, clr, MARin, MARtoMEMORY);
 	register Y(BUSMUXOUT, clk, clr, Yin, YtoALU);
+	
 	register Z_HIGH(ALUtoZHIGH, clk, clr, Zin, ZHIGHtoBUSMUX);
 	register Z_LOW(ALUtoZLO, clk, clr, Zin, ZLOWtoBUSMUX);
+	
 	register INPORT(BUSMUXOUT, clk, clr, INPORTin, INPORTtoBUSMUX);
 	register C_SIGN(BUSMUXOUT, clk, clr, Cin, CSIGNtoBUSMUX);
 
