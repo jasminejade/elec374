@@ -4,7 +4,7 @@
 module datapath_tb;
 	reg PCout, Zlowout, MDRout, R2out, R3out; // add any other signals to see in your simulation
 	reg MARin, Zin, PCin, MDRin, IRin, Yin;
-	reg IncPC, Read, R1in, R2in, R3in; //AND = opcode
+	reg IncPC, Read, R1in, R2in, R3in;
 	reg clk, clr;
 	reg [4:0] opcode;
 	reg [31:0] Mdatain;

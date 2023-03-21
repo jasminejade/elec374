@@ -1,6 +1,6 @@
 module encoder (output reg[4:0] Code, input wire [31:0] Data);
 	always @(*) begin
-		casez(Data) //change to case, treats x and z in data as 0
+		casex(Data) //change to case, treats x and z in data as 0
 			32'h00000001	:	Code <= 5'd0;
 			32'h00000002	:	Code <= 5'd1; 
 			32'h00000004	:	Code <= 5'd2; 

@@ -3,7 +3,6 @@ module md_mux(
 	input					read,
 	output reg [31:0]	md_mux_out
 );
-//	reg		[31:0]	mdmux_int;
 
 	always @(*) begin
 		case(read)

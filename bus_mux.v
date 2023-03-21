@@ -1,9 +1,10 @@
 module bus_mux(
-	input		[31:0]	r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, HI, LO, z_high, z_low, PC, MDR, in_port, c_sign_extended,
+	input	[31:0]			r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, 
+								r11, r12, r13, r14, r15, HI, LO, z_high, 
+								z_low, PC, MDR, in_port, c_sign_extended,
 	input wire	[4:0]		select,
 	output reg	[31:0]	bus_mux_out
 );
-//	reg	[31:0]	mux_int;
 	
 	always @(*) begin
 		case(select)
