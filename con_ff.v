@@ -22,5 +22,6 @@ module con_ff(input [1:0] C2, input signed [31:0] bus_out, input CONin, output r
 		
 	always @(*) begin
 		if(CONin) Q <= br_flag;
+		else Q <= 0;
 	end
 endmodule

@@ -2,11 +2,11 @@ module ALU(
 	input						IncPC, br_flag,
 	input wire	[31:0]	A, B,
 	input wire 	[4:0]		opcode,
-	output reg [31:0] 	Zlow, Zhi
+	output reg [31:0] 	Zlow, Zhi, PC
 );
 	parameter LD = 5'b00000, LDi = 5'b00001, ST = 5'b00010, ADD = 5'b00011, SUB = 5'b00100, AND = 5'b00101, OR = 5'b00110, SHR = 5'b00111, 
 					SHRA = 5'b01000, SHL = 5'b01001, ROR = 5'b01010, ROL = 5'b01011, ADDi = 5'b01100, ANDi = 5'b01101, ORi = 5'b01110, 
-					MUL = 5'b01111, DIV = 5'b10000, NEG = 5'b10001, NOT = 5'b10010, BRANCH = 5'b10011, JR = 5'b10100, JAL = 5'b10101
+					MUL = 5'b01111, DIV = 5'b10000, NEG = 5'b10001, NOT = 5'b10010, BRANCH = 5'b10011, JR = 5'b10100, JAL = 5'b10101,
 					IN = 5'b10110, OUT = 5'b10111, MFHI = 5'b11000, MFLO = 5'b11001, NOP = 5'b11010, HALT = 5'b11011;
 	
 	wire [63:0] and_result, or_result, mul_result, div_result, shra_result, add_result, sub_result, 
@@ -27,10 +27,13 @@ module ALU(
 	rotate ror_instance(A, B, 1, ror_result);
 		
 	always @(*) begin
+		if (IncPC) PC <= B + 1;
 		case(opcode)
-			OR			: {Zhi, Zlow} <= or_result;
-			AND		: {Zhi, Zlow} <= and_result;
-			ADD		: {Zhi, Zlow} <= add_result;
+			LD, LDi	: {Zhi, Zlow} <= add_result;
+			ST			: {Zhi, Zlow} <= add_result;
+			OR, ORi	: {Zhi, Zlow} <= or_result;
+			AND, ANDi: {Zhi, Zlow} <= and_result;
+			ADD, ADDi: {Zhi, Zlow} <= add_result;
 			SUB		: {Zhi, Zlow} <= sub_result;
 			MUL		: {Zhi, Zlow} <= mul_result;
 			DIV		: {Zhi, Zlow} <= div_result;
@@ -41,13 +44,19 @@ module ALU(
 			NOT		: {Zhi, Zlow} <= not_result;
 			ROL		: {Zhi, Zlow} <= rol_result;
 			ROR		: {Zhi, Zlow} <= ror_result;
-			BR			: begin
-						if(br_flag==1) {Zhi, Zlow} <= add_result + 1;
-						else {Zhi, Zlow} <= A + 1;
+			BRANCH	: begin
+							{Zhi, Zlow} <= 64'b0;
+							if(br_flag==1) PC <= add_result;
 						end
+			JR, JAL	: PC <= B;
+			IN			: {Zhi, Zlow} <= 64'b0;
+			OUT 		: {Zhi, Zlow} <= 64'b0;
+			MFHI		: {Zhi, Zlow} <= 64'b0;
+			MFLO		: {Zhi, Zlow} <= 64'b0;
+			NOP		: {Zhi, Zlow} <= 64'b0;
+			HALT		: {Zhi, Zlow} <= 64'b0;
 			default 	: begin
-						if(IncPC) {Zhi, Zlow} <= B + 1;
-						else {Zhi, Zlow} <= 64'b0;
+							{Zhi, Zlow} <= 64'b0;
 						end
 		endcase
 	end

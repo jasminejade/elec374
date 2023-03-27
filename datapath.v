@@ -1,16 +1,15 @@
 module datapath(
 	output [31:0] Outport_output,
 	input [31:0] Inport_input,
-	input wire clk, clr, Yin, Zin, MDRin, IRin, PCin, MARin, MDRout, Zlowout, PCout, IncPC, Read, Cout,
-	input wire GRA, GRB, GRC, RAM_read, RAM_write, Rin_logic, BA_out,
-	input wire [4:0] opcode
-);
+	input wire clk, clr, Stop, Run, Reset
+);	
 	wire [15:0] Rin, Rout;
-	wire Rout_logic;
+	wire Rout_logic, Rin_logic;
+	wire GRA, GRB, GRC, BA_out, RAM_read, RAM_write;
 	
-	wire INPORTin, LOin, Cin, HIin, OUTPORTin;
-	wire HIout, LOout, Yout, Zhighout, INPORTout;
-	wire br_flag, CONin;
+	wire Yin, Zin, MDRin, IRin, PCin, MARin, INPORTin, LOin, HIin, OUTPORTin, CONin;
+	wire MDRout, Zlowout, PCout, Cout, HIout, LOout, Yout, Zhighout, INPORTout;
+	wire br_flag, IncPC, Read;
 	
 	wire [31:0] BUSMUXOUT, ALU_PC, RAMtoMDR;
 	wire [31:0] R0toBUSMUX, R1toBUSMUX, R2toBUSMUX, R3toBUSMUX, R4toBUSMUX, R5toBUSMUX, 
@@ -21,11 +20,15 @@ module datapath(
 	wire [31:0] MDMUXtoMDR, MARtoMEMORY, IRtoCONTROL, outport_output;
 	wire [4:0] CODEtoBUSMUX, CODEtoALU;
 	
+	control_unit control(PCout, Zhighout, Zlowout, MDRout, MARin, PCin, MDRin, IRin, Yin, IncPC, Read, HIin, LOin, HIout, LOout, Zin, Cout,
+								RAM_write, RAM_read, GRA, GRB, GRC, Rin_logic, Rout_logic, BA_out, CONin, INPORTin, OUTPORTin, INPORTout, Run, clr,
+								IRtoCONTROL, clk, Reset, Stop);
+	
 	RAM ram(RAM_write, RAM_read, MARtoMEMORY[8:0], MDRtoBUSMUX, RAMtoMDR);
 	select_and_encode IR_logic(IRtoCONTROL, GRA, GRB, GRC, Rin_logic, Rout_logic, BA_out, CSIGNtoBUSMUX, CODEtoALU, Rin, Rout);
 	con_ff CONFF(IRtoCONTROL[20:19], BUSMUXOUT, CONin, br_flag);
-	ALU alu(IncPC, br_flag, YtoALU, BUSMUXOUT, opcode, ALUtoZLO, ALUtoZHIGH);
-
+	ALU alu(IncPC, br_flag, YtoALU, BUSMUXOUT, CODEtoALU, ALUtoZLO, ALUtoZHIGH, ALU_PC);
+	
 	wire [31:0] R0out;
 	register R0(BUSMUXOUT, clk, clr, Rin[0], R0out);
 	assign R0toBUSMUX = {32{!BA_out}} & R0out;
@@ -53,7 +56,7 @@ module datapath(
 	register Z_LOW(ALUtoZLO, clk, clr, Zin, ZLOWtoBUSMUX);
 	register MAR(BUSMUXOUT, clk, clr, MARin, MARtoMEMORY);
 	register MDR(MDMUXtoMDR, clk, clr, MDRin, MDRtoBUSMUX);
-	register #(32'd0) PC(BUSMUXOUT, clk, clr, PCin, PCtoBUSMUX);
+	register #(32'd0) PC(ALU_PC, clk, clr, PCin, PCtoBUSMUX);
 	register INPORT(Inport_input, clk, clr, INPORTin, INPORTtoBUSMUX);
 	register OUTPORT(BUSMUXOUT, clk, clr, OUTPORTin, outport_output);
 	

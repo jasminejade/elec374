@@ -13,9 +13,9 @@ ALU uut(
 );
 
 initial begin
-	A = 32'b10010;
-	B = 32'b100;
+	A = 32'b110010;
+	B = 32'b110;
 	#10;
-	opcode = 5'b01000;
+	opcode = 5'b01111;
 end
 endmodule
